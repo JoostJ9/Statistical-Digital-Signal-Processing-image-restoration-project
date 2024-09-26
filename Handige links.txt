@@ -1,0 +1,6 @@
+Hoe werkt motion blur? 
+https://medium.com/@itberrios6/how-to-apply-motion-blur-to-images-75b745e3ef17
+
+Project gemaakt door anderen van vorig jaar. 
+https://www.studeersnel.nl/nl/document/technische-universiteit-delft/statistical-digital-signal-processing-and-modeling/image-restoration/73710360?origin=university-course-page
+
