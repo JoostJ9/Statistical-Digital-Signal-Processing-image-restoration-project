@@ -1,5 +1,3 @@
-"""Module"""
-
 import matplotlib.pyplot as plt
 import scipy.io
 import cv2
@@ -14,7 +12,7 @@ I1 = mat_data['I1']
 I2 = mat_data['I2']
 print(I2)
 # Plotting the images
-plt.figure(figsize=(10, 5))        #create a figure that does not cover the whole screen.
+plt.figure(figsize=(10, 5))
 
 # Show image 1
 plt.subplot(1, 2, 1)
