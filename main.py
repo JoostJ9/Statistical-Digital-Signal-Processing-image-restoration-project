@@ -50,7 +50,7 @@ def create_filter(size,radius,type):
     plt.axis('off')
 
     # Display the images
-    filter /= filter/np.sum(filter)
+    filter /= np.sum(filter)
     print(filter)
     plt.subplot(1, 2, 2)
     plt.imshow(filter, cmap='gray')
