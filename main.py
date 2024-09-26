@@ -12,6 +12,7 @@ mat_data = scipy.io.loadmat('img_restoration.mat')
 
 # Extract the images
 I1 = mat_data['I1']
+print(I1.shape)
 I2 = mat_data['I2']
 
 #print(I2)
@@ -52,21 +53,15 @@ def create_filter(size,radius,type):
 
 
 # this method scales the filter to image size before creating the blur
-blur_filter_big = create_filter(len(I1),len(I1)//5 ,5)
-fft_blur_big = scipy.fft.fft2(blur_filter_big)
+blur_filter_big = create_filter(len(I1),len(I1)//50 ,5)
+blur_filter_big = scipy.fft.fftshift(blur_filter_big)
+fft_filter_big = scipy.fft.fft2(blur_filter_big)
 #print(fft_blur_big)
-
 # this method pads zeroes to create an equally sized blur filter array compared to the image
-blur_filter_small = create_filter(21,8,5)
-padded_blur_filter = np.zeros_like(I1)
-print(padded_blur_filter.shape)
+blur_filter_small = create_filter(80,10,5)
+padded_blur_filter = np.zeros_like(I1, dtype = np.float32)
 fh, fw = blur_filter_small.shape
-print(blur_filter_small)
-padded_blur_filter[:21, :21] = blur_filter_small
-print(padded_blur_filter[:21, :21])
-
-#print(fh,fw)
-
+padded_blur_filter[:fh, :fw] = blur_filter_small
 
 #Show the filters
 plt.subplot(1, 2, 1)
@@ -77,6 +72,28 @@ plt.axis('off')
 plt.subplot(1, 2, 2)
 plt.imshow(padded_blur_filter, cmap='gray')
 plt.title('Image 2')
+plt.axis('off')
+
+# Display the images
+plt.show()
+
+fft_filter_small = scipy.fft.fft2(padded_blur_filter)
+
+blurred_fft_small = fft_filter_small * I1_fft
+blurred_fft_big = fft_filter_big* I1_fft
+
+blurred_image_small = np.abs(scipy.fft.ifft2(blurred_fft_small))
+blurred_image_big = np.abs(scipy.fft.ifft2(blurred_fft_big))
+
+#Show the filters
+plt.subplot(1, 3, 1)
+plt.imshow(blurred_image_small, cmap='gray')
+plt.title('Image small')
+plt.axis('off')
+
+plt.subplot(1, 3, 2)
+plt.imshow(blurred_image_big, cmap='gray')
+plt.title('Image big')
 plt.axis('off')
 
 # Display the images
