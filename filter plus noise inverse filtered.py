@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import scipy.io
 import cv2
 import numpy as np
+from MSE import *
 
 rows = 2
 columns = 5
@@ -115,8 +116,8 @@ plt.axis('off')
 I1_blurred_noisy = add_gaussian_noise(I1_blurred_image)
 I2_blurred_noisy = add_gaussian_noise(I2_blurred_image)
 
-# I1_blurred_noisy = I1_blurred_image
-# I2_blurred_noisy = I2_blurred_image
+I1_blurred_noisy = I1_blurred_image
+I2_blurred_noisy = I2_blurred_image
 
 # Show the blurred images
 plt.subplot(rows, columns, 4)
@@ -138,8 +139,11 @@ I2_blurred_noisy_fft = scipy.fft.fft2(I2_blurred_noisy)
 
 epsilon = 0
 
-I1_blurred_noisy_inverse_fft = np.divide(I1_blurred_noisy_fft, I1_fft_filter_big, out=np.zeros_like(I1_blurred_noisy_fft), where=I1_fft_filter_big > 0.1)
-I2_blurred_noisy_inverse_fft = np.divide(I2_blurred_noisy_fft, I2_fft_filter_big, out=np.zeros_like(I2_blurred_noisy_fft), where=I2_fft_filter_big > 0.1)
+I1_blurred_noisy_inverse_fft = I1_blurred_noisy_fft/I1_fft_filter_big
+I2_blurred_noisy_inverse_fft = I2_blurred_noisy_fft/I2_fft_filter_big
+
+# I1_blurred_noisy_inverse_fft = np.divide(I1_blurred_noisy_fft, I1_fft_filter_big, out=np.zeros_like(I1_blurred_noisy_fft), where=I1_fft_filter_big > 0.0)
+# I2_blurred_noisy_inverse_fft = np.divide(I2_blurred_noisy_fft, I2_fft_filter_big, out=np.zeros_like(I2_blurred_noisy_fft), where=I2_fft_filter_big > 0.0)
 
 # Inverse Fast Fourier Transform of both the blurred noisy images
 I1_blurred_noisy_inverse = np.abs(scipy.fft.ifft2(I1_blurred_noisy_inverse_fft))
@@ -161,3 +165,21 @@ plt.axis('off')
 
 # Display the images
 plt.show()
+
+plt.subplot(1,2,1)
+plt.imshow(I1_blurred_noisy_inverse, cmap='gray')
+plt.title('Blurred Image 1 inverse filtered without noise')
+plt.axis('off')
+
+plt.subplot(1,2,2)
+plt.imshow(I2_blurred_noisy_inverse, cmap='gray')
+plt.title('Blurred Image 2 inverse filtered without noise')
+plt.axis('off')
+
+plt.savefig("inverse_without_noise.svg", format="svg")
+
+mse_image_1 = calculate_mse(I1, I1_blurred_noisy_inverse)
+mse_image_2 = calculate_mse(I2, I2_blurred_noisy_inverse)
+
+print(mse_image_1)
+print(mse_image_2)
