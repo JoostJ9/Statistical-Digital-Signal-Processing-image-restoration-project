@@ -5,7 +5,7 @@ import scipy.io
 import scipy.signal
 import cv2
 import numpy as np
-from MSE import *
+from mse import *
 
 rows = 2
 columns = 6
@@ -137,7 +137,7 @@ plt.imshow(I2_blurred_noisy.image, cmap='gray')
 plt.title('Blurred Image 2 with noise')
 plt.axis('off')
 
-plt.savefig("plot.svg", format="svg")
+# plt.savefig("plot.svg", format="svg")
 
 # take the 2D Fast Fourier Transform of both the blurred noisy images
 I1_blurred_noisy_fft = scipy.fft.fft2(I1_blurred_noisy.image)
@@ -178,23 +178,36 @@ print(mse_image_2)
 
 ## WIENER FILTER
 ## Thomas Part:
-# the gaussian noise window
-gaussian_window = scipy.signal.get_window(('gaussian',test_sigma), I1_blurred_noisy_fft)
-print('derp')
-print(gaussian_window)
-gaussian_value_1 = gaussian_window
-gaussian_value_2 = I2_blurred_noisy.noise
-# normalize the gaussian values
-gaussian_value_1 /= np.sum(gaussian_value_1)
-gaussian_value_2 /= np.sum(gaussian_value_2)
-# fft transform
-fft_gaussian_value_1 = scipy.fft.fft2(gaussian_value_1)
-fft_gaussian_value_2 = scipy.fft.fft2(gaussian_value_2)
-# K can be set for optimization, not sure what the rest is (!Joost!)
-K = 5
-wiener_filter_1 = np.conj(fft_gaussian_value_1)/ (np.abs(fft_gaussian_value_1)**2 + K)
-wiener_filter_2 = np.conj(fft_gaussian_value_2)/ (np.abs(fft_gaussian_value_2)**2 + K)
+# # the gaussian noise window
+# gaussian_window = scipy.signal.get_window(('gaussian',test_sigma), I1_blurred_noisy_fft)
+# print('derp')
+# print(gaussian_window)
+# gaussian_value_1 = gaussian_window
+# gaussian_value_2 = I2_blurred_noisy.noise
 
+# # normalize the gaussian values
+# gaussian_value_1 /= np.sum(gaussian_value_1)
+# gaussian_value_2 /= np.sum(gaussian_value_2)
+
+# # fft transform
+# fft_gaussian_value_1 = scipy.fft.fft2(gaussian_value_1)
+# fft_gaussian_value_2 = scipy.fft.fft2(gaussian_value_2)
+
+# # K can be set for optimization, not sure what the rest is (!Joost!)
+# K = 5
+# wiener_filter_1 = np.conj(fft_gaussian_value_1)/ (np.abs(fft_gaussian_value_1)**2 + K)
+# wiener_filter_2 = np.conj(fft_gaussian_value_2)/ (np.abs(fft_gaussian_value_2)**2 + K)
+
+# cleaned_image_1 = np.abs(scipy.fft.ifft2(I1_blurred_noisy_fft * wiener_filter_1))
+# cleaned_image_2 = np.abs(scipy.fft.ifft2(I2_blurred_noisy_fft * wiener_filter_2))
+
+K = 0.0001
+
+# Wiener Filter:
+wiener_filter_1 = np.conj(I1_fft_filter_big)/(np.abs(I1_fft_filter_big)**2 + K)
+wiener_filter_2 = np.conj(I2_fft_filter_big)/(np.abs(I2_fft_filter_big)**2 + K)
+
+#Calculate the cleaned images:
 cleaned_image_1 = np.abs(scipy.fft.ifft2(I1_blurred_noisy_fft * wiener_filter_1))
 cleaned_image_2 = np.abs(scipy.fft.ifft2(I2_blurred_noisy_fft * wiener_filter_2))
 
