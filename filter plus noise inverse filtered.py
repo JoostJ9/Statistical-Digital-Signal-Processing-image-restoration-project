@@ -5,10 +5,12 @@ import scipy.io
 import scipy.signal
 import cv2
 import numpy as np
-from mse import *
+# from mse import calculate_mse
+
+FILTER_SIZE = 5
 
 ROWS = 2
-COLUMNS = 5
+COLUMNS = 2
 TEST_SIGMA = 0.005
 
 class test:
@@ -64,22 +66,23 @@ plt.title('Image 1')
 plt.axis('off')
 
 # Show  Image 2
-plt.subplot(ROWS, COLUMNS, 6)
+plt.subplot(ROWS, COLUMNS, 3)
 plt.imshow(I2, cmap='gray')
 plt.title('Image 2')
 plt.axis('off')
 
+# Add zero padding, to minimize the edge effects of the filter. 
+PAD_SIZE = 1  
+I1_padded = np.pad(I1, PAD_SIZE, mode='constant')
+I2_padded = np.pad(I2, PAD_SIZE, mode='constant')
+
 # take the 2D Fast Fourier Transform of both the images
-I1_fft = scipy.fft.fft2(I1)
-I2_fft = scipy.fft.fft2(I2)
+I1_fft = scipy.fft.fft2(I1_padded)
+I2_fft = scipy.fft.fft2(I2_padded)
 
 # this method scales the filter to image size before creating the blur
-I1_blur_filter_big = create_filter(len(I1), len(I1) // 50 + 1, 5)
-I2_blur_filter_big = create_filter(len(I2), len(I2) // 50 + 1, 5)
-
-# FFT-shift the filter.
-I1_blur_filter_big = scipy.fft.fftshift(I1_blur_filter_big)
-I2_blur_filter_big = scipy.fft.fftshift(I2_blur_filter_big)
+I1_blur_filter_big = create_filter(len(I1_padded), len(I1_padded) // 50 + 1, FILTER_SIZE)
+I2_blur_filter_big = create_filter(len(I2_padded), len(I2_padded) // 50 + 1, FILTER_SIZE)
 
 # Take the 2D FFT of the filter.
 I1_fft_filter_big = scipy.fft.fft2(I1_blur_filter_big)
@@ -93,14 +96,22 @@ I2_blurred_fft = I2_fft_filter_big * I2_fft
 I1_blurred_image = np.abs(scipy.fft.ifft2(I1_blurred_fft))
 I2_blurred_image = np.abs(scipy.fft.ifft2(I2_blurred_fft))
 
+# FFT-shift the image due to the results of the calculations. 
+I1_blurred_image = scipy.fft.fftshift(I1_blurred_image)
+I2_blurred_image = scipy.fft.fftshift(I2_blurred_image)
+
+# Remove zero-padding (crop back to the original size)
+I1_blurred_image_cropped = I1_blurred_image[PAD_SIZE:-PAD_SIZE, PAD_SIZE:-PAD_SIZE]
+I2_blurred_image_cropped = I2_blurred_image[PAD_SIZE:-PAD_SIZE, PAD_SIZE:-PAD_SIZE]
+
 # Show the blurred images
 plt.subplot(ROWS, COLUMNS, 2)
-plt.imshow(I1_blurred_image, cmap='gray')
+plt.imshow(I1_blurred_image_cropped, cmap='gray')
 plt.title('Blurred Image 1')
 plt.axis('off')
 
-plt.subplot(ROWS, COLUMNS, 7)
-plt.imshow(I2_blurred_image, cmap='gray')
+plt.subplot(ROWS, COLUMNS, 4)
+plt.imshow(I2_blurred_image_cropped, cmap='gray')
 plt.title('Blurred Image 2')
 plt.axis('off')
 
@@ -109,15 +120,15 @@ I1_blurred_noisy = add_gaussian_noise(I1_blurred_image)
 I2_blurred_noisy = add_gaussian_noise(I2_blurred_image)
 
 # Show the blurred images
-plt.subplot(ROWS, COLUMNS, 3)
-plt.imshow(I1_blurred_noisy.image, cmap='gray')
-plt.title('Blurred Image 1 with noise')
-plt.axis('off')
+# plt.subplot(ROWS, COLUMNS, 2)
+# plt.imshow(I1_blurred_noisy.image, cmap='gray')
+# plt.title('Blurred Image 1 with noise')
+# plt.axis('off')
 
-plt.subplot(ROWS, COLUMNS, 8)
-plt.imshow(I2_blurred_noisy.image, cmap='gray')
-plt.title('Blurred Image 2 with noise')
-plt.axis('off')
+# plt.subplot(ROWS, COLUMNS, 4)
+# plt.imshow(I2_blurred_noisy.image, cmap='gray')
+# plt.title('Blurred Image 2 with noise')
+# plt.axis('off')
 
 # plt.savefig("plot.svg", format="svg")
 
@@ -138,25 +149,22 @@ I2_blurred_noisy_inverse_fft = I2_blurred_noisy_fft/I2_fft_filter_big
 I1_blurred_noisy_inverse = np.abs(scipy.fft.ifft2(I1_blurred_noisy_inverse_fft))
 I2_blurred_noisy_inverse = np.abs(scipy.fft.ifft2(I2_blurred_noisy_inverse_fft))
 
-# print(I1_blurred_noisy_inverse)
-# print(I2_blurred_noisy_inverse)
-
 # Show the inverse filter images
-plt.subplot(ROWS, COLUMNS, 4)
-plt.imshow(I1_blurred_noisy_inverse, cmap='gray')
-plt.title('Blurred Image 1 inverse')
-plt.axis('off')
+# plt.subplot(ROWS, COLUMNS, 4)
+# plt.imshow(I1_blurred_noisy_inverse, cmap='gray')
+# plt.title('Blurred Image 1 inverse')
+# plt.axis('off')
 
-plt.subplot(ROWS, COLUMNS, 9)
-plt.imshow(I2_blurred_noisy_inverse, cmap='gray')
-plt.title('Blurred Image 2 inverse')
-plt.axis('off')
+# plt.subplot(ROWS, COLUMNS, 9)
+# plt.imshow(I2_blurred_noisy_inverse, cmap='gray')
+# plt.title('Blurred Image 2 inverse')
+# plt.axis('off')
 
-I1_mse = calculate_mse(I1, I1_blurred_noisy_inverse)
-I2_mse = calculate_mse(I2, I2_blurred_noisy_inverse)
+# I1_mse = calculate_mse(I1, I1_blurred_noisy_inverse)
+# I2_mse = calculate_mse(I2, I2_blurred_noisy_inverse)
 
-print(I1_mse)
-print(I2_mse)
+# print(I1_mse)
+# print(I2_mse)
 
 K = 0.0001
 
@@ -168,24 +176,25 @@ wiener_filter_2 = np.conj(I2_fft_filter_big)/(np.abs(I2_fft_filter_big)**2 + K)
 I1_blurred_noisy_wiener = np.abs(scipy.fft.ifft2(I1_blurred_noisy_fft * wiener_filter_1))
 I2_blurred_noisy_wiener = np.abs(scipy.fft.ifft2(I2_blurred_noisy_fft * wiener_filter_2))
 
-I1_mse = calculate_mse(I1, I1_blurred_noisy_wiener)
-I2_mse = calculate_mse(I2, I2_blurred_noisy_wiener)
+# I1_mse = calculate_mse(I1, I1_blurred_noisy_wiener)
+# I2_mse = calculate_mse(I2, I2_blurred_noisy_wiener)
 
-print(I1_mse)
-print(I2_mse)
+# print(I1_mse)
+# print(I2_mse)
 
-# Show all the images
-plt.subplot(ROWS,COLUMNS,5)
-plt.imshow(I1_blurred_noisy_wiener, cmap='gray')
-plt.title('Blurred Image 1 Wiener')
-plt.axis('off')
+# # Show all the images
+# plt.subplot(ROWS,COLUMNS,5)
+# plt.imshow(I1_blurred_noisy_wiener, cmap='gray')
+# plt.title('Blurred Image 1 Wiener')
+# plt.axis('off')
 
-plt.subplot(ROWS,COLUMNS,10)
-plt.imshow(I2_blurred_noisy_wiener, cmap='gray')
-plt.title('Blurred Image 2 Wiener')
-plt.axis('off')
+# plt.subplot(ROWS,COLUMNS,10)
+# plt.imshow(I2_blurred_noisy_wiener, cmap='gray')
+# plt.title('Blurred Image 2 Wiener')
+# plt.axis('off')
 
 plt.show()
+
 
 #plt.subplot(1,2,1)
 #plt.imshow(I1_blurred_noisy_inverse, cmap='gray')
@@ -197,4 +206,4 @@ plt.show()
 #plt.title('Blurred Image 2 inverse filtered without noise')
 #plt.axis('off')
 
-#plt.savefig("inverse_without_noise.svg", format="svg")
+plt.savefig("boundary-effect.svg", format="svg")
