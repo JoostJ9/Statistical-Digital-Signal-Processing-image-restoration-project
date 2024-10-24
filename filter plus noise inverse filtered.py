@@ -7,9 +7,9 @@ import cv2
 import numpy as np
 from mse import *
 
-rows = 2
-columns = 6
-test_sigma = 1
+ROWS = 2
+COLUMNS = 5
+TEST_SIGMA = 0.005
 
 class test:
     def __init__(self,image,noise): 
@@ -34,17 +34,13 @@ def create_filter(size, radius, type):
 
     return image_filter
 
-def add_gaussian_noise(image, mean=0, sigma=test_sigma):
+def add_gaussian_noise(image, mean=0, sigma=TEST_SIGMA):
     """Function to add Gaussian noise to an image"""
     # Generate Gaussian noise
     noise = np.random.normal(mean, sigma, image.shape)
 
     # Add the noise to the original image
-    print("regular image: ")
-    print(image)
     noisy_image = image + noise
-    print("Noisy Image: ")
-    print(noisy_image)
 
     # Clip values to be in the valid range [0, 255] for uint8 images
     noisy_image= np.clip(noisy_image, 0, 255)
@@ -54,7 +50,7 @@ def add_gaussian_noise(image, mean=0, sigma=test_sigma):
 # Load the .mat file
 mat_data = scipy.io.loadmat('img_restoration.mat')
 
-# Extract the images from the mat file into uint8 matrices. 
+# Extract the images from the mat file into uint8 matrices.
 I1 = mat_data['I1']
 I2 = mat_data['I2']
 
@@ -62,13 +58,13 @@ I2 = mat_data['I2']
 plt.figure(figsize=(12, 6))
 
 # Show Image 1
-plt.subplot(rows, columns, 1)
+plt.subplot(ROWS, COLUMNS, 1)
 plt.imshow(I1, cmap='gray')
 plt.title('Image 1')
 plt.axis('off')
 
 # Show  Image 2
-plt.subplot(rows, columns, 7)
+plt.subplot(ROWS, COLUMNS, 6)
 plt.imshow(I2, cmap='gray')
 plt.title('Image 2')
 plt.axis('off')
@@ -80,17 +76,6 @@ I2_fft = scipy.fft.fft2(I2)
 # this method scales the filter to image size before creating the blur
 I1_blur_filter_big = create_filter(len(I1), len(I1) // 50 + 1, 5)
 I2_blur_filter_big = create_filter(len(I2), len(I2) // 50 + 1, 5)
-
-# Show the filters
-plt.subplot(rows, columns, 2)
-plt.imshow(I1_blur_filter_big, cmap='gray')
-plt.title('Filter for Image 1')
-plt.axis('off')
-
-plt.subplot(rows, columns, 8)
-plt.imshow(I2_blur_filter_big, cmap='gray')
-plt.title('Filter for Image 2')
-plt.axis('off')
 
 # FFT-shift the filter.
 I1_blur_filter_big = scipy.fft.fftshift(I1_blur_filter_big)
@@ -109,12 +94,12 @@ I1_blurred_image = np.abs(scipy.fft.ifft2(I1_blurred_fft))
 I2_blurred_image = np.abs(scipy.fft.ifft2(I2_blurred_fft))
 
 # Show the blurred images
-plt.subplot(rows, columns, 3)
+plt.subplot(ROWS, COLUMNS, 2)
 plt.imshow(I1_blurred_image, cmap='gray')
 plt.title('Blurred Image 1')
 plt.axis('off')
 
-plt.subplot(rows, columns, 9)
+plt.subplot(ROWS, COLUMNS, 7)
 plt.imshow(I2_blurred_image, cmap='gray')
 plt.title('Blurred Image 2')
 plt.axis('off')
@@ -123,16 +108,13 @@ plt.axis('off')
 I1_blurred_noisy = add_gaussian_noise(I1_blurred_image)
 I2_blurred_noisy = add_gaussian_noise(I2_blurred_image)
 
-#I1_blurred_noisy.image = I1_blurred_image
-#I2_blurred_noisy.image = I2_blurred_image
-
 # Show the blurred images
-plt.subplot(rows, columns, 4)
+plt.subplot(ROWS, COLUMNS, 3)
 plt.imshow(I1_blurred_noisy.image, cmap='gray')
 plt.title('Blurred Image 1 with noise')
 plt.axis('off')
 
-plt.subplot(rows, columns, 10)
+plt.subplot(ROWS, COLUMNS, 8)
 plt.imshow(I2_blurred_noisy.image, cmap='gray')
 plt.title('Blurred Image 2 with noise')
 plt.axis('off')
@@ -160,46 +142,21 @@ I2_blurred_noisy_inverse = np.abs(scipy.fft.ifft2(I2_blurred_noisy_inverse_fft))
 # print(I2_blurred_noisy_inverse)
 
 # Show the inverse filter images
-plt.subplot(rows, columns, 5)
+plt.subplot(ROWS, COLUMNS, 4)
 plt.imshow(I1_blurred_noisy_inverse, cmap='gray')
 plt.title('Blurred Image 1 inverse')
 plt.axis('off')
 
-plt.subplot(rows, columns, 11)
+plt.subplot(ROWS, COLUMNS, 9)
 plt.imshow(I2_blurred_noisy_inverse, cmap='gray')
 plt.title('Blurred Image 2 inverse')
 plt.axis('off')
 
-mse_image_1 = calculate_mse(I1, I1_blurred_noisy_inverse)
-mse_image_2 = calculate_mse(I2, I2_blurred_noisy_inverse)
+I1_mse = calculate_mse(I1, I1_blurred_noisy_inverse)
+I2_mse = calculate_mse(I2, I2_blurred_noisy_inverse)
 
-print(mse_image_1)
-print(mse_image_2)
-
-## WIENER FILTER
-## Thomas Part:
-# # the gaussian noise window
-# gaussian_window = scipy.signal.get_window(('gaussian',test_sigma), I1_blurred_noisy_fft)
-# print('derp')
-# print(gaussian_window)
-# gaussian_value_1 = gaussian_window
-# gaussian_value_2 = I2_blurred_noisy.noise
-
-# # normalize the gaussian values
-# gaussian_value_1 /= np.sum(gaussian_value_1)
-# gaussian_value_2 /= np.sum(gaussian_value_2)
-
-# # fft transform
-# fft_gaussian_value_1 = scipy.fft.fft2(gaussian_value_1)
-# fft_gaussian_value_2 = scipy.fft.fft2(gaussian_value_2)
-
-# # K can be set for optimization, not sure what the rest is (!Joost!)
-# K = 5
-# wiener_filter_1 = np.conj(fft_gaussian_value_1)/ (np.abs(fft_gaussian_value_1)**2 + K)
-# wiener_filter_2 = np.conj(fft_gaussian_value_2)/ (np.abs(fft_gaussian_value_2)**2 + K)
-
-# cleaned_image_1 = np.abs(scipy.fft.ifft2(I1_blurred_noisy_fft * wiener_filter_1))
-# cleaned_image_2 = np.abs(scipy.fft.ifft2(I2_blurred_noisy_fft * wiener_filter_2))
+print(I1_mse)
+print(I2_mse)
 
 K = 0.0001
 
@@ -208,17 +165,23 @@ wiener_filter_1 = np.conj(I1_fft_filter_big)/(np.abs(I1_fft_filter_big)**2 + K)
 wiener_filter_2 = np.conj(I2_fft_filter_big)/(np.abs(I2_fft_filter_big)**2 + K)
 
 #Calculate the cleaned images:
-cleaned_image_1 = np.abs(scipy.fft.ifft2(I1_blurred_noisy_fft * wiener_filter_1))
-cleaned_image_2 = np.abs(scipy.fft.ifft2(I2_blurred_noisy_fft * wiener_filter_2))
+I1_blurred_noisy_wiener = np.abs(scipy.fft.ifft2(I1_blurred_noisy_fft * wiener_filter_1))
+I2_blurred_noisy_wiener = np.abs(scipy.fft.ifft2(I2_blurred_noisy_fft * wiener_filter_2))
+
+I1_mse = calculate_mse(I1, I1_blurred_noisy_wiener)
+I2_mse = calculate_mse(I2, I2_blurred_noisy_wiener)
+
+print(I1_mse)
+print(I2_mse)
 
 # Show all the images
-plt.subplot(rows,columns,6)
-plt.imshow(cleaned_image_1, cmap='gray')
+plt.subplot(ROWS,COLUMNS,5)
+plt.imshow(I1_blurred_noisy_wiener, cmap='gray')
 plt.title('Blurred Image 1 Wiener')
 plt.axis('off')
 
-plt.subplot(rows,columns,12)
-plt.imshow(cleaned_image_2, cmap='gray')
+plt.subplot(ROWS,COLUMNS,10)
+plt.imshow(I2_blurred_noisy_wiener, cmap='gray')
 plt.title('Blurred Image 2 Wiener')
 plt.axis('off')
 
