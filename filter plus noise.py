@@ -32,7 +32,7 @@ def add_gaussian_noise(image, mean=0, sigma=10):
     noisy_image = image + noise
 
     # Clip values to be in the valid range [0, 255] for uint8 images
-    #noisy_image = np.clip(noisy_image, 0, 255)
+    noisy_image = np.clip(noisy_image, 0, 255)
 
     return noisy_image.astype(np.uint8)
 
