@@ -10,7 +10,7 @@ from mse import *
 
 
 #sigma values: 0; 0.010; 1; 2 [0.000,0.0010,1.000,2.000]
-TEST_SIGMA = [0.000,0.00001,0.001,0.1000]
+TEST_SIGMA = [0.000,0.00001,0.001,0.100,1.000,10]
 
 ROWS = 2
 COLUMNS = len(TEST_SIGMA)
@@ -64,7 +64,7 @@ I1 = mat_data['I1']
 I2 = mat_data['I2']
 
 # Creating a figure in matplotlib
-plt.figure(figsize=(12, 6))
+plt.figure(figsize=(2*len(TEST_SIGMA), len(TEST_SIGMA)))
 
 # # Show Image 1
 # plt.subplot(ROWS, COLUMNS, 1)
@@ -158,15 +158,15 @@ for sigma in TEST_SIGMA:
     # print(I2_blurred_noisy_inverse)
 
     # Show the inverse filter images
-    plt.subplot(ROWS, COLUMNS, 1+i)
-    plt.imshow(I1_blurred_noisy_inverse, cmap='gray')
-    plt.title('Image 1, $\sigma=$'+str(sigma))
-    plt.axis('off')
+    #plt.subplot(ROWS, COLUMNS, 1+i)
+    #plt.imshow(I1_blurred_noisy_inverse, cmap='gray')
+    #plt.title('Image 1, $\sigma=$'+str(sigma))
+    #plt.axis('off')
 
-    plt.subplot(ROWS, COLUMNS, 5+i)
-    plt.imshow(I2_blurred_noisy_inverse, cmap='gray')
-    plt.title('Image 2, $\sigma=$'+str(sigma))
-    plt.axis('off')
+    #plt.subplot(ROWS, COLUMNS, 5+i)
+    #plt.imshow(I2_blurred_noisy_inverse, cmap='gray')
+    #plt.title('Image 2, $\sigma=$'+str(sigma))
+    #plt.axis('off')
 
     # Calculate the MSE of the inverse using mse.py
     I1_mse_inv = calculate_mse(I1, I1_blurred_noisy_inverse)
@@ -189,17 +189,17 @@ for sigma in TEST_SIGMA:
     #print("Wiener:")
     #print(I1_mse)
     #print(I2_mse)
+    
+    # Show all the images
+    plt.subplot(ROWS,COLUMNS,1+i)
+    plt.imshow(I1_blurred_noisy_wiener, cmap='gray')
+    plt.title('Image 1, $\sigma=$'+str(sigma))
+    plt.axis('off')
 
-    # # Show all the images
-    # plt.subplot(ROWS,COLUMNS,5)
-    # plt.imshow(I1_blurred_noisy_wiener, cmap='gray')
-    # plt.title('Blurred Image 1 Wiener')
-    # plt.axis('off')
-
-    # plt.subplot(ROWS,COLUMNS,10)
-    # plt.imshow(I2_blurred_noisy_wiener, cmap='gray')
-    # plt.title('Blurred Image 2 Wiener')
-    # plt.axis('off')
+    plt.subplot(ROWS,COLUMNS,len(TEST_SIGMA)+1+i)
+    plt.imshow(I2_blurred_noisy_wiener, cmap='gray')
+    plt.title('Image 2, $\sigma=$'+str(sigma))
+    plt.axis('off')
     wiener_MSE1[i] = round(I1_mse,3)
     wiener_MSE2[i] = round(I2_mse,3)
     inverse_MSE1[i] = round(I1_mse_inv,3)
@@ -207,7 +207,7 @@ for sigma in TEST_SIGMA:
     i += 1
 
 
-plt.savefig("blur_filter_inverse.svg", format="svg")
+plt.savefig("blur_filter_wiener.svg", format="svg")
 plt.show()
 print("wiener1")
 print(wiener_MSE1)
